@@ -1,0 +1,554 @@
+<!doctype html>
+<html>
+  <head>
+    <title> Mindfulness experiment </title>
+    <meta charset="UTF-8">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <style>
+      iframe {
+        width: 100%;
+        border: 0;
+        min-height: 80%;
+        height: 600px;
+        display: flex;
+      }
+    </style>
+  </head>
+  <body style="background-color:black; color:white; overflow:hidden;">
+    <div class="container">
+      <!--PAGE 1-->
+      <div id="content-1" >  
+          <h1>Welcome</h1>
+            <form class="form-horizontal" role="form" style="margin-left:400px;margin-top:100px">
+                <div class="form-group">
+                  <div class="col-xs-5">
+                    <label for="usr">Please enter your participant ID number:</label>
+                    <input class="form-control" type="text" id="participantId" min="0" data-bind="value:replyNumber" onkeypress='return event.charCode >= 48 && event.charCode <= 57'/>
+                  </div>
+                </div>
+                <div class="form-group" >
+                  <div class="col-xs-4">
+                    <button type="button" id="btn-next-1" class="btn btn-primary">Next</button>
+                  </div>
+                </div>
+            </form>
+      </div>
+
+      <!--PAGE 2-->
+      <div id="content-2" tabindex="1" style="display:none" >  
+        <h1>Welcome</h1>
+          <form class="form-horizontal" role="form" style="margin-left:15px;margin-top:50px">
+              <div class="form-group">
+                <div class="col-xs-16">
+                  <h3>Place your hands on the keyboard with your left hand over the “F” key and your right hand over the “J” key. Once you’re ready, press “J” to begin today’s session.</h3>
+                </div>
+              </div>
+          </form>
+      </div>
+      <!--PAGE 3-->
+      <div id="content" style="display:none;">
+          <div class="tab-pane"  id="sound" style="margin-left:38%;margin-top:10%">
+            <button type="button" id="btn-success" class="btn btn-success">Breath (Press F)</button>
+            <button type="button" id="btn-fail" class="btn btn-danger">Other (Press J)</button>
+            <h1 style="display:none"><time>00:00:00</time></h1>
+            <audio id="ring">
+              <source src="ring.mp3" type="audio/mp3">
+            </audio>
+          </div>  
+      </div>
+
+      <!--PAGE 4-->
+      <div id="content-4" style="display:none; margin-left:36%;margin-top:10%">  
+          <form role="form">
+              <div class="form-group">  
+                <p>How easy or difficult was it for you to do this session? </p>
+                <div class="radio">
+                  <label><input type="radio" name="optradio" value="Very Easy">1 - Very Easy</label>
+                </div>
+                <div class="radio">
+                  <label><input type="radio" name="optradio" value="Easy">2 - Easy</label>
+                </div>
+                <div class="radio">
+                  <label><input type="radio" name="optradio" value="Somewhat Easy">3 - Somewhat Easy</label>
+                </div>
+                <div class="radio">
+                  <label><input type="radio" name="optradio" value="Neither Easy nor Difficult">4 - Neither Easy nor Difficult</label>
+                </div>
+                <div class="radio">
+                  <label><input type="radio" name="optradio" value="Somewhat Difficult">5 - Somewhat Difficult</label>
+                </div>
+                <div class="radio">
+                  <label><input type="radio" name="optradio" value="Difficult">6 - Difficult</label>
+                </div>
+                <div class="radio">
+                  <label><input type="radio" name="optradio" value="Very Difficult">7 - Very Difficult</label>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:40px" >
+              <div>
+                <p>During this session, were your eyes:</p>
+                <button type="button" id="btn-eye-open" class="btn btn-primary">Open</button>
+                <button type="button" id="btn-eye-closed" class="btn btn-primary">Closed</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+      <!--PAGE 5-->
+      <div id="content-5" style="display:none; margin-left:0%;margin-top:10%">  
+          <h1>Thank you for participating! Your responses have been submitted.</h1>
+      </div>
+
+    </div>
+ 
+
+
+
+  <script type="text/javascript">
+
+
+      function sendMail() {
+          var link = "mailto:daniel.garibotti@acad.pucrs.br"
+                   + "&subject=" + escape("This is my subject")
+                   + "&body=" + escape("Test")
+          ;
+
+          window.location.href = link;
+      }
+
+    //change first screen
+    $("#btn-next-1").click(function(){
+       //sendMail();
+        participantId = $("#participantId").val();
+        if(participantId){
+          reportData += "Participant Id: " + participantId + "\n";
+          $("#content-1").hide();
+          $("#content-2").show();
+          //binding key down on body
+          $(document).on('keydown', function(event) {
+            //catch keys that were pressed (J or F)
+            switch(event.keyCode){
+               case 74:
+                if($("#content-2").is(":visible")){
+                  $("#content-2").hide();
+                  $("#content").show();
+                  jitteredSampling();
+                }else{
+                  if(miliseconds - lastAudioSample < 2000){
+                    reportData += "Attention on other(prompted): " + miliseconds + "\n";
+                  }else{
+                    reportData += "Attention on other(self-generated): " + miliseconds + "\n";
+                  }
+                    //console.log("Last audio: " + lastAudioSample + " J Event time: " + miliseconds)     
+                }
+                break;
+               case 70:
+                reportData += "Attention on breath: " + miliseconds + "\n";
+                //console.log("Last audio: " + lastAudioSample + " F Event time: " + miliseconds)
+                break;
+            }
+          });
+        }
+    });
+
+    $("#btn-eye-open").click(function(){
+        reportData += "Eyes: Open \n";
+        changeLastPage();
+    });
+    $("#btn-eye-closed").click(function(){
+       reportData += "Eyes: Closed \n";
+       changeLastPage();
+    });
+
+    function changeLastPage(){
+        reportData += "Difficult: " + $('input[name=optradio]:checked').val() + "\n";
+        $("#content-4").hide();
+        $("#content-5").show();
+        console.log(reportData); 
+    }
+
+
+    jQuery(document).ready(function ($) {
+        $('#tabs').tab();
+    });
+
+
+
+    function jitteredSampling(){
+      var n = 1;
+      var s = 15000;
+      var start = 30000 ;
+      var increment = 180000;
+      var samples = []; 
+      var current = start;
+      var random = 0;
+      startTime = Date.now();//set the start time
+      timer2();//start the counter
+      for (i = 0; i < n; i++) {
+          random = Math.floor((Math.random() * s) + 1); 
+          //console.log(random);
+          if(Math.floor((Math.random() * 10) + 1) <= 5){
+            random = current - random;
+          }else{
+            random = current + random;
+          }
+          //console.log(random);
+          samples[i] = random;
+          setTimeout(playAudio,random);
+          current += increment;
+      }      
+    }
+
+
+    function timer2(){
+      if(miliseconds <= 60000){
+        setTimeout(add2,10);       
+      }else{
+        $("#content").hide();
+        $("#content-4").show();
+      }
+    }
+
+    function add2(){
+      miliseconds = Date.now() - startTime;
+      timer2();
+    }
+
+
+    var x = document.getElementById("ring"); 
+    var t;
+    var seconds = 0, minutes = 0, hours = 0, miliseconds = 0;
+    var h1 = document.getElementsByTagName('h1')[0];
+    var control = false;
+    var timerPlaying = false;
+    var lastAudioSample = 0;
+    var startTime = Date.now();
+    var reportData = '';
+    var participantId;
+
+    function playAudio() { 
+        x.play(); 
+        lastAudioSample = miliseconds;
+        reportData += "Auditory cue(prompt): " + lastAudioSample + "\n";
+        //console.log("Audio time: " + lastAudioSample)  
+        control = true;
+    } 
+
+    function pauseAudio() { 
+        x.pause(); 
+    }
+
+
+
+///not using
+    function add() {
+        seconds++;
+        if (seconds >= 60) {
+            seconds = 0;
+            minutes++;
+            if (minutes >= 60) {
+                minutes = 0;
+                hours++;
+            }
+        }
+        
+          h1.textContent = (hours ? (hours > 9 ? hours : "0" + hours) : "00") + ":" + (minutes ? (minutes > 9 ? minutes : "0" + minutes) : "00") + ":" + (seconds > 9 ? seconds : "0" + seconds);
+
+        timer();
+    }
+
+    function timer() {
+        t = setTimeout(add, 1000);
+        timerPlaying = true;
+    }
+
+
+        $( "#clickSound" ).click(function() {
+      if(timerPlaying == false){
+        timer();
+        setTimeout(playAudio, 3000);
+        setTimeout(playAudio, 9000);
+        setTimeout(playAudio, 15000);
+      }
+      
+
+      //playAudio();
+    });
+
+    $( "#btn-success" ).click(function(){
+        //alert(h1.textContent);
+        /*if(control == true){
+          $('#reportTable tr:last').after('<tr><td>Distraction sound</td><td>'+h1.textContent+'</td><td>Not Distracted</td></tr>');
+        }else{
+          $('#reportTable tr:last').after('<tr><td>UserClickEvent</td><td>'+h1.textContent+'</td><td>Not Distracted</td></tr>');          
+        }
+        control = false;*/
+    });
+
+    $( "#btn-fail" ).click(function(){
+        /*alert(h1.textContent);
+        if(control == true){
+          $('#reportTable tr:last').after('<tr><td>Distraction sound</td><td>'+h1.textContent+'</td><td>Distracted</td></tr>');
+        }else{
+          $('#reportTable tr:last').after('<tr><td>UserClickEvent</td><td>'+h1.textContent+'</td><td>Distracted</td></tr>');
+        }
+        control = false;*/
+    });
+  </script> 
+
+
+
+
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+      var clientId = '787438218714-2moeaqs4022q3nf3sb3e5ilf264o0gv6.apps.googleusercontent.com';
+      var apiKey = 'AIzaSyBEWslnEecem5Ia3et_YLxbf22agPQJNGs';
+      var scopes =
+        'https://www.googleapis.com/auth/gmail.readonly '+
+        'https://www.googleapis.com/auth/gmail.send';
+
+      function handleClientLoad() {
+        gapi.client.setApiKey(apiKey);
+        window.setTimeout(checkAuth, 1);
+      }
+
+      function checkAuth() {
+        gapi.auth.authorize({
+          client_id: clientId,
+          scope: scopes,
+          immediate: true
+        }, handleAuthResult);
+      }
+
+      function handleAuthClick() {
+        gapi.auth.authorize({
+          client_id: clientId,
+          scope: scopes,
+          immediate: false
+        }, handleAuthResult);
+        return false;
+      }
+
+      function handleAuthResult(authResult) {
+        if(authResult && !authResult.error) {
+          loadGmailApi();
+          $('#authorize-button').remove();
+          $('.table-inbox').removeClass("hidden");
+          $('#compose-button').removeClass("hidden");
+        } else {
+          $('#authorize-button').removeClass("hidden");
+          $('#authorize-button').on('click', function(){
+            handleAuthClick();
+          });
+        }
+      }
+
+      function loadGmailApi() {
+        gapi.client.load('gmail', 'v1', displayInbox);
+      }
+
+      function displayInbox() {
+        var request = gapi.client.gmail.users.messages.list({
+          'userId': 'me',
+          'labelIds': 'INBOX',
+          'maxResults': 10
+        });
+        request.execute(function(response) {
+          $.each(response.messages, function() {
+            var messageRequest = gapi.client.gmail.users.messages.get({
+              'userId': 'me',
+              'id': this.id
+            });
+            messageRequest.execute(appendMessageRow);
+          });
+        });
+      }
+
+      function appendMessageRow(message) {
+        $('.table-inbox tbody').append(
+          '<tr>\
+            <td>'+getHeader(message.payload.headers, 'From')+'</td>\
+            <td>\
+              <a href="#message-modal-' + message.id +
+                '" data-toggle="modal" id="message-link-' + message.id+'">' +
+                getHeader(message.payload.headers, 'Subject') +
+              '</a>\
+            </td>\
+            <td>'+getHeader(message.payload.headers, 'Date')+'</td>\
+          </tr>'
+        );
+        var reply_to = (getHeader(message.payload.headers, 'Reply-to') !== '' ?
+          getHeader(message.payload.headers, 'Reply-to') :
+          getHeader(message.payload.headers, 'From')).replace(/\"/g, '&quot;');
+
+        var reply_subject = 'Re: '+getHeader(message.payload.headers, 'Subject').replace(/\"/g, '&quot;');
+        $('body').append(
+          '<div class="modal fade" id="message-modal-' + message.id +
+              '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">\
+            <div class="modal-dialog modal-lg">\
+              <div class="modal-content">\
+                <div class="modal-header">\
+                  <button type="button"\
+                          class="close"\
+                          data-dismiss="modal"\
+                          aria-label="Close">\
+                    <span aria-hidden="true">&times;</span></button>\
+                  <h4 class="modal-title" id="myModalLabel">' +
+                    getHeader(message.payload.headers, 'Subject') +
+                  '</h4>\
+                </div>\
+                <div class="modal-body">\
+                  <iframe id="message-iframe-'+message.id+'" srcdoc="<p>Loading...</p>">\
+                  </iframe>\
+                </div>\
+                <div class="modal-footer">\
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\
+                  <button type="button" class="btn btn-primary reply-button" data-dismiss="modal" data-toggle="modal" data-target="#reply-modal"\
+                  onclick="fillInReply(\
+                    \''+reply_to+'\', \
+                    \''+reply_subject+'\', \
+                    \''+getHeader(message.payload.headers, 'Message-ID')+'\'\
+                    );"\
+                  >Reply</button>\
+                </div>\
+              </div>\
+            </div>\
+          </div>'
+        );
+        $('#message-link-'+message.id).on('click', function(){
+          var ifrm = $('#message-iframe-'+message.id)[0].contentWindow.document;
+          $('body', ifrm).html(getBody(message.payload));
+        });
+      }
+
+      function sendEmail()
+      {
+        $('#send-button').addClass('disabled');
+
+        sendMessage(
+          {
+            'To': "daniel.garibotti@acad.pucrs.br", //$('#compose-to').val(),
+            'Subject': "Hello"
+          },
+          "Testing",
+          composeTidy
+        );
+
+        return false;
+      }
+
+      function composeTidy()
+      {
+        /*
+        $('#compose-modal').modal('hide');
+
+        $('#compose-to').val('');
+        $('#compose-subject').val('');
+        $('#compose-message').val('');
+
+        $('#send-button').removeClass('disabled');*/
+      }
+
+      function sendReply()
+      {
+        $('#reply-button').addClass('disabled');
+
+        sendMessage(
+          {
+            'To': $('#reply-to').val(),
+            'Subject': $('#reply-subject').val(),
+            'In-Reply-To': $('#reply-message-id').val()
+          },
+          $('#reply-message').val(),
+          replyTidy
+        );
+
+        return false;
+      }
+
+      function replyTidy()
+      {
+        $('#reply-modal').modal('hide');
+
+        $('#reply-message').val('');
+
+        $('#reply-button').removeClass('disabled');
+      }
+
+      function fillInReply(to, subject, message_id)
+      {
+        $('#reply-to').val(to);
+        $('#reply-subject').val(subject);
+        $('#reply-message-id').val(message_id);
+      }
+
+      function sendMessage(headers_obj, message, callback)
+      {
+        var email = '';
+
+        for(var header in headers_obj)
+          email += header += ": "+headers_obj[header]+"\r\n";
+
+        email += "\r\n" + message;
+
+        var sendRequest = gapi.client.gmail.users.messages.send({
+          'userId': 'me',
+          'resource': {
+            'raw': window.btoa(email).replace(/\+/g, '-').replace(/\//g, '_')
+          }
+        });
+
+        return sendRequest.execute(callback);
+      }
+
+      function getHeader(headers, index) {
+        var header = '';
+        $.each(headers, function(){
+          if(this.name.toLowerCase() === index.toLowerCase()){
+            header = this.value;
+          }
+        });
+        return header;
+      }
+
+      function getBody(message) {
+        var encodedBody = '';
+        if(typeof message.parts === 'undefined')
+        {
+          encodedBody = message.body.data;
+        }
+        else
+        {
+          encodedBody = getHTMLPart(message.parts);
+        }
+        encodedBody = encodedBody.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '');
+        return decodeURIComponent(escape(window.atob(encodedBody)));
+      }
+
+      function getHTMLPart(arr) {
+        for(var x = 0; x <= arr.length; x++)
+        {
+          if(typeof arr[x].parts === 'undefined')
+          {
+            if(arr[x].mimeType === 'text/html')
+            {
+              return arr[x].body.data;
+            }
+          }
+          else
+          {
+            return getHTMLPart(arr[x].parts);
+          }
+        }
+        return '';
+      }
+    </script>
+    <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+  </body>
+</html>
