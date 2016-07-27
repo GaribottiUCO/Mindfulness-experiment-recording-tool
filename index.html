@@ -16,6 +16,14 @@
         height: 600px;
         display: flex;
       }
+      img {
+        background-image: url(Screen_1.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        width: 100%;
+        height: 100%;
+      }
     </style>
   </head>
   <body style="background-color:black; color:white; overflow:hidden;">
@@ -50,13 +58,15 @@
           </form>
       </div>
       <!--PAGE 3-->
-      <div id="content" style="display:none;">
+      <div id="content" style="display:none;" width="100%" height="100%">
+        <img src="Screen_1.jpg" id="screen_1" class="img-responsive hide" alt="Responsive image">
+        <img src="Screen_2.jpg" id="screen_2" class="img-responsive hide" alt="Responsive image">
           <div class="tab-pane"  id="sound" style="margin-left:38%;margin-top:10%">
-            <button type="button" id="btn-success" class="btn btn-success">Breath (Press F)</button>
-            <button type="button" id="btn-fail" class="btn btn-danger">Other (Press J)</button>
+            <!--<button type="button" id="btn-success" class="btn btn-success">Breath (Press F)</button>
+            <button type="button" id="btn-fail" class="btn btn-danger">Other (Press J)</button>-->
             <h1 style="display:none"><time>00:00:00</time></h1>
             <audio id="ring">
-              <source src="ring.mp3" type="audio/mp3">
+              <source src="Medit Bell Neptune 6s.wav" type="audio/mp3">
             </audio>
           </div>  
       </div>
@@ -137,6 +147,7 @@
                   $("#content-2").hide();
                   $("#content").show();
                   jitteredSampling();
+                  checkParticipantId();
                 }else{
                   if(miliseconds - lastAudioSample < 2000){
                     reportData += "Attention on other(prompted): " + miliseconds + "\n";
@@ -164,6 +175,15 @@
        changeLastPage();
     });
 
+    function checkParticipantId(){
+      if(participantId % 2 == 0){
+        $("#screen_1").remove();
+        $("#screen_2").removeClass("hide");
+      }else{
+        console.log("impar");
+        $("#screen_1").removeClass("hide");
+      }
+    }
     function changeLastPage(){
         reportData += "Difficult: " + $('input[name=optradio]:checked').val() + "\n";
         $("#content-4").hide();
